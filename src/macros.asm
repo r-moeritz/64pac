@@ -53,6 +53,19 @@ dbadc     .macro lo, byt
           adc \lo+1
           sta \lo+1
           .endm
+
+; add two words
+; lo1 = low byte of 1st word address
+; lo2 = low byte of 2nd word address
+dbadcw    .macro lo1, lo2
+          lda \lo1
+          clc
+          adc \lo2
+          sta \lo1
+          lda \lo2+1
+          adc \lo1+1
+          sta \lo1+1
+          .endm
           
 ; subtract a byte from a word
 ; lo = low byte of word address
@@ -65,7 +78,20 @@ dbsbc     .macro lo, byt
           lda \lo+1
           sbc #0
           sta \lo+1
-          .endm         
+          .endm
+          
+; subtract one word from another
+; lo1 = low byte of 1st word address
+; lo2 = low byte of 2nd word address
+dbsbcw     .macro lo1, lo2
+          lda \lo1
+          sec
+          sbc \lo2
+          sta \lo1
+          lda \lo1+1
+          sbc \lo2+1
+          sta \lo1+1
+          .endm    
 
 ; conditional jumps
 ; -----------------
@@ -89,3 +115,24 @@ jne       .macro adr
           beq fin
           jmp \adr
 fin       .endm
+
+; vector methods
+; --------------
+
+; add vector v1 to vector v2
+vadc      .macro v1, v2
+          #dbadcw v1.x, v2.x          
+          lda v1.y
+          clc
+          adc v2.y
+          sta v1.y
+          .endm
+
+; substract vector v2 from vector v1
+vsbc      .macro v1, v2
+          #dbsbcw v1.x, v1.x
+          lda v1.y
+          sec
+          sbc v2.y
+          sta v1.y
+          .endm
