@@ -2,21 +2,12 @@
 ; | ram definitions |
 ; +-----------------+
 
-; data structures
-; ---------------
+zp1 = $fb
+zp2 = $fc
+zp3 = $fd
+zp4 = $fe
 
-; node ds
-node      .struct xpos, ypos
-x         .word \xpos
-y         .byte \ypos
-up        .byte 0
-down      .byte 0
-left      .byte 0
-right     .byte 0
-          .ends
-
-; vector ds
-vector    .struct xpos, ypos
-x         .word \xpos
-y         .byte \ypos
-          .ends
+node_a          .dstruct node, 10, 24
+node_b          .dstruct node, 30, 24
+node_c          .dstruct node, 50, 24
+node_d          .dstruct node, 30, 10
