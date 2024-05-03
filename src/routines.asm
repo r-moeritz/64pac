@@ -67,7 +67,7 @@ set_cursor_pos  ldy zp1
                 cpx #25
                 #jcs illqua                
                 clc
-                jmp $fff0
+                jmp plot
 
 ; plot a low-res (2x2) "pixel".
 ; zp1 = column (0-79)
