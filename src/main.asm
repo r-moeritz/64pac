@@ -11,9 +11,9 @@ jmp main
 
 .include "macros.asm"
 .include "sysdefs.asm"
+.include "ramdefs.asm"
 .include "routines.asm"
 .include "structs.asm"
-.include "ramdefs.asm"
 .include "datadefs.asm"
 
 ; program entry
