@@ -153,9 +153,3 @@ set_bg_colours  .macro bor, bak
                 stx vic+$20
                 sty vic+$21
                 .endm
-
-; clear the low-res screen                
-clear_screen    .macro
-                lda #$93
-                jsr bsout
-                .endm

@@ -8,46 +8,46 @@
 ; set location of 16k video bank seen by vic-ii chip.
 ; zp1 = bank number (0 = $0000-$3fff, 1 = $4000-$7fff,  
 ;                    2 = $8000-$bfff, 3 = $c000-$ffff)  
-set_vic_bank    lda cia2+2
+set_vic_bank    lda ci2pra+2
                 ora #3
-                sta cia2+2
+                sta ci2pra+2
                 lda zp1
                 cmp #4
                 #jcs illqua
-                lda cia2
+                lda ci2pra
                 and #$fc
-                ora $14
+                ora zp1
                 eor #3
-                sta cia2
-                lda $14
+                sta ci2pra
+                lda zp1
                 ror a
                 ror a
                 ror a
                 and #$c0
-                sta $14
+                sta zp1
                 lda hibase
                 and #$3f
-                ora $14
+                ora zp1
                 sta hibase
                 rts
 
 ; set location of screen memory within 16k seen by vic-ii.
-; zp1 = address (0-63) 1k block of memory within 16k video bank
-set_screen_mem  lda zp1
+; x = address (0-63) of 1k memory block within 16k video bank
+set_screen_mem  txa
                 asl a
                 asl a
                 tax
                 eor hibase
                 and #$c0
                 #jne illqua
-                lda vic+$18
+                lda vmcsb
                 and #$f
-                sta vic+$18
+                sta vmcsb
                 txa
                 asl a
                 asl a
-                ora vic+$18
-                sta vic+$18
+                ora vmcsb
+                sta vmcsb
                 lda hibase
                 txa
                 ora hibase
@@ -56,6 +56,58 @@ set_screen_mem  lda zp1
                 
 ; low-res gfx routines
 ; -------------------------------------------------------------
+
+; copy charset from chargen rom to ram
+; zp1 = address (0-63) of 1k memory block within 16k video bank
+; overwrites zp1 and zp2
+copy_charset    lda zp1
+                asl a
+                asl a
+                sta zp2
+                lda #0
+                sta zp1
+                sta $58
+                ldy #$10
+                sty $59
+                sta $5a
+                ldy #$e0
+                sty $5b
+                sta $5f
+                ldy #$d0
+                sty $60
+                #adc_words $58, zp1
+                lda ci1cr
+                and #$fe
+                sta ci1cr
+                lda $01
+                and #$fb
+                sta $01
+                jsr bltuc
+                lda $01
+                ora #4
+                sta $01
+                lda ci1cr
+                ora #1
+                sta ci1cr
+                rts
+
+; set the vic-ii character data pointer
+; zp1 = address (0-63) of 1k memory block within 16k video bank
+; overwrites zp2
+set_chrptr      lda zp1
+                asl a
+                asl a
+                eor hibase
+                and #$c0
+                #jne illqua
+                lda zp1
+                and #$f
+                sta zp2
+                lda vmcsb
+                and #$f0
+                ora zp2
+                sta vmcsb
+                rts
 
 ; set location of basic screen editor cursor.
 ; zp1 = column (0-39)
@@ -131,6 +183,44 @@ l3              tax
 chrtab          .byte $20, $7e, $7c, $e2, $7b, $61, $ff, $ec
                 .byte $6c, $7f, $e1, $fb, $62, $fc, $fe, $a0
 mtab            .byte $01, $02, $04, $08                
+                .bend
+                
+; i/o routines
+; -------------------------------------------------------------
+
+; scan for joystick input on port 2
+;
+; after calling, zp3 and zp4 contain movement information.
+;
+; zp3 = $00   no change on x-axis
+; zp3 = $01   moved right
+; zp3 = $ff   moved left
+; zp4 = $00   no change on y-axis
+; zp4 = $01   moved down
+; zp4 = $ff   moved up
+;
+; if carry is clear (c=0) then fire button was pressed.
+; --------------------------------------------------------
+scan_joystick_2 .block
+                lda ci1pra
+djrrb           ldy #0
+                ldx #0
+                lsr
+                bcs djr0
+                dey
+djr0            lsr
+                bcs djr1
+                iny
+djr1            lsr
+                bcs djr2
+                dex
+djr2            lsr
+                bcs djr3
+                inx
+djr3            lsr
+                stx zp3
+                sty zp4
+                rts
                 .bend
                 
 ; node-related routines
