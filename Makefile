@@ -2,6 +2,7 @@
 OBJDIR := build
 SRCDIR := src
 SRC := $(SRCDIR)/main.asm
+SRCDEPS := $(wildcard $(SRCDIR)/*.asm)
 PRG := $(OBJDIR)/64pac.prg
 LAB := $(OBJDIR)/64pac.lab
 LST := $(OBJDIR)/64pac.lst
@@ -28,7 +29,7 @@ clean:
 	$(RM) $(OBJDIR) *.o
 
 # Rules
-$(PRG): $(SRC)
+$(PRG): $(SRCDEPS)
 	$(MKPRG)
 
 $(D64): $(PRG) 

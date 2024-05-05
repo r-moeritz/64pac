@@ -7,8 +7,8 @@ cinv = $0314                    ; irq vector
 
 ; vic-ii memory
 vic = $d000
-sp2x = vic+$04
-sp2y = vic+$05
+sp0x = vic
+sp0y = vic+$01
 msigx = vic+$10
 scroly = vic+$11
 raster = vic+$12
@@ -31,6 +31,7 @@ illqua = $b248
 clrscn = $e544
 sysirq = $ea31
 restore = $ea7e
+reset = $fce2
 bsout = $ffd2
 stop = $ffe1
 plot = $fff0

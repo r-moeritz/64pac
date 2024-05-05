@@ -153,3 +153,22 @@ set_bg_colours  .macro bor, bak
                 stx vic+$20
                 sty vic+$21
                 .endm
+
+; sprite functions
+; -------------------------------------------------------------
+
+; enable sprites
+; spfld = bit field specifying which of the 8 sprites to enable
+enable_sprites  .macro spfld
+                lda spena
+                ora \spfld
+                sta spena
+                .endm
+                
+; set sprite data
+; spnum = sprite number (0-7)
+; spdat = address of sprite data (low byte)
+set_sprite_data .macro spnum, spdat
+                lda \spdat/64
+                sta sp0ptr+\spnum
+                .endm

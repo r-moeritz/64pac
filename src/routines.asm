@@ -200,7 +200,6 @@ mtab            .byte $01, $02, $04, $08
 ; zp4 = $ff   moved up
 ;
 ; if carry is clear (c=0) then fire button was pressed.
-; --------------------------------------------------------
 scan_joystick_2 .block
                 lda ci1pra
 djrrb           ldy #0
@@ -253,4 +252,85 @@ draw_nodes      lda #0
                 sta zp2
                 jsr plot_lowres_px
                 
+                lda node_e.pos.x
+                sta zp1
+                lda node_e.pos.y
+                sta zp2
+                jsr plot_lowres_px
+                
                 rts
+                
+; sprite-related routines
+; -------------------------------------------------------------
+
+; enable sprites, set sprite data & initial positions
+setup_sprites   .block
+                lda sprite_0_pos.x
+                sta sp0x
+                lda sprite_0_pos.x+1
+                beq clrxmsb                
+                lda msigx
+                ora #%00000001
+                sta msigx
+                jmp setspry
+                
+clrxmsb         lda msigx
+                and #%11111110
+                sta msigx                
+                
+setspry         lda sprite_0_pos.y
+                sta sp0y
+                
+                #set_sprite_data 0, #balloon_spdata                                
+                #enable_sprites #1                
+                rts               
+                .bend
+                
+; interrupt routines                
+; -------------------------------------------------------------
+
+; register irq handler and enable raster interrupts
+register_irq    sei
+                lda #<handle_irq
+                sta cinv
+                lda #>handle_irq
+                sta cinv+1
+                lda #rasterln
+                sta raster
+                lda scroly
+                and #%01111111                  ; erase highbyte
+                sta scroly
+                lda #%10000001                  ; enable raster interrupt
+                sta irqmsk
+                cli
+                rts
+                
+; interrupt handler
+handle_irq      lda vicirq
+                sta vicirq                      ; erase vic-ii irq register
+                bmi rasirq
+
+                ; system interrupt
+                lda ci1icr                      ; erase cia 1 irq register
+                cli
+                jmp sysirq
+
+                ; raster interrupt
+rasirq          lda raster
+                cmp #rasterln
+                beq setsprx
+                jmp exitirq
+setsprx         lda sprite_0_pos.x
+                sta sp0x
+setxmsb         lda sprite_0_pos.x+1
+                beq clrxmsb
+                lda msigx
+                ora #%00000001
+                sta msigx
+                jmp setspry
+clrxmsb         lda msigx
+                and #%11111110
+                sta msigx
+setspry         lda sprite_0_pos.y
+                sta sp0y
+exitirq         jmp restore
